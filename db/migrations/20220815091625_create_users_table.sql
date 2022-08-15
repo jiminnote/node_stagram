@@ -1,0 +1,11 @@
+-- migrate:up
+CREATE TABLE users(
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(200) UNIQUE NOT NULL,
+    password BINARY(60) NOT NULL,
+    nickname VARCHAR(100) NOT NULL,
+	name VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+ );
+-- migrate:down
+

@@ -1,21 +1,37 @@
 const userService = require('../services/userService');
 
-const signup = async (req, res) => {
+const signUp = async (req, res) => {
     try { 
         const {name, email, nickname, password} = req.body;
 
         if ( !name || !email || !nickname || !password ) {
             return res.status(400).json({ message: 'KEY_ERROR' });
         }
-        await userService.signup(name, email, nickname, password);
+        await userService.signUp(name, email, nickname, password);
     
-        return res.status(201).json({message: 'SUCCESS',});
-    } catch (err) {
-        console.log(err);
-        return res.status(err.statusCode || 500).json({ message: err.message });
+        res.status(201).end();
+     } catch (err) {
+    res
+      .status(err.statusCode ? err.statusCode : 400)
+      .json({ message: err.message });
   }
-}
+};
 
-module.exports = {
-    signup
+const signIn = async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      const accessToken = await userService.signIn(email, password);
+      
+      res.status(200).json({ accessToken: accessToken });
+    } catch (err) {
+    res
+      .status(err.statusCode ? err.statusCode : 401)
+      .json({ message: err.message });
+  }
+};
+
+  module.exports = {
+    signUp,
+    signIn
 };

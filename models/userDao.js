@@ -1,6 +1,6 @@
 const { myDataSource } = require('../config/mysql');
 
-const signup = async (name, email, nickname, password) => {
+const createUser = async (name, email, nickname, encryptedPassword) => {
 	try {
 		return await myDataSource.query(
 		`INSERT INTO users(
@@ -8,18 +8,31 @@ const signup = async (name, email, nickname, password) => {
 			email,
 			nickname,
 			password
-		) VALUES (?, ?, ?, ?); 
-		`,
-		[name, email, nickname, password]
+		) VALUES ("${name}", "${email}", "${nickname}", "${encryptedPassword}"); 
+		`
 	  );} 
 	  	catch (err) {
-        console.log(err)
 		const error = new Error('INVALID_DATA_INPUT');
 		error.statusCode = 500;
 		throw error;
 	}
 };
 
+const getUserByEmail = async (email) => {
+    const [user] = await myDataSource.query(
+      `
+        SELECT *
+        FROM users 
+        WHERE email = ?
+      `,
+      [email]
+    );
+  
+    return user;
+  };
+
 module.exports = {
-    signup
+    createUser,
+    getUserByEmail
+
 };

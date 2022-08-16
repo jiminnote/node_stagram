@@ -1,32 +1,47 @@
 const userDao = require('../models/userDao')
+const bcrypt  = require('bcrypt')
+const jwt     = require('jsonwebtoken')
+const { validateEmail,validatePassword } = require("../utils/validators");
 
-const signup = async (name, email, nickname, password) => {
-    const passwordValidation = new RegExp(
-        '^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,20})'
-        );
-        if(!passwordValidation.test(password)) {
-        const err = new Error('PASSWORD_INVALID');
-        err.statusCode = 400;
-        throw err;}
+const dotenv  = require('dotenv')
+dotenv.config()
 
-    const emailValidation = new RegExp(
-        '^[a-zA-Z0-9+-\_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
-        );
-        if(!emailValidation.test(email)) {
-        const err = new Error('EMAIL_INVALID');
-        err.statusCode = 400;
-        throw err;}
-    
-    const signup = await userDao.signup(
-        name, 
-        email, 
-        nickname, 
-        password
-        );
+const signUp = async (name, email, nickname, password) => {
+    validateEmail(email);
+    validatePassword(password);
 
-    return signup;
+    const user = await userDao.getUserByEmail(email);
+
+    if (user) {
+        const err = new Error("duplicated email");
+        err.statusCode = 409;
+        throw err;
+      }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await userDao.createUser(email, hashedPassword, name, nickname);
     };
 
-module.exports = {
-    signup
-}
+const signIn = async (email, password) => {
+    const user = await userDao.getUserByEmail(email);
+    if (!user) {
+        const err = new Error("specified user does not exist");
+        err.statusCode = 404;
+        throw err;
+      }
+
+    const result = await bcrypt.compare(password, user.password);
+
+  if (!result) {
+    const err = new Error("invalid password");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  return jwt.sign({ sub: user.id, email: user.email }, process.env.SECRET_KEY);
+};
+
+  module.exports = {
+    signUp,
+    signIn
+};

@@ -17,10 +17,11 @@ const signUp = async (name, email, nickname, password) => {
         err.statusCode = 409;
         throw err;
       }
-    console.log(typeof(password))
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    console.log("ddong")
-    await userDao.createUser(email, hashedPassword, name, nickname);
+
+    await userDao.createUser(name, email, nickname, hashedPassword);
+
     };
 
 const signIn = async (email, password) => {
@@ -31,7 +32,7 @@ const signIn = async (email, password) => {
         throw err;
       }
 
-      const result = await bcrypt.compare(password, user.password.toString());
+    const result = await bcrypt.compare(password, user.password.toString());
 
   if (!result) {
     const err = new Error("invalid password");
